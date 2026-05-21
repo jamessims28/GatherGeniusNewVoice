@@ -741,3 +741,546 @@ begin
     on public.reality_orchestration_runs for all to service_role using (true) with check (true);
   end if;
 end $$;
+
+
+
+-- Phase 6 Production Autonomy Core
+create table if not exists public.gg_user_profiles (
+  user_key text primary key,
+  email text,
+  display_name text,
+  created_at timestamptz default now(),
+  last_seen_at timestamptz default now()
+);
+
+create table if not exists public.gg_persistent_memory (
+  user_key text primary key,
+  memory_data jsonb default '{}'::jsonb,
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.gg_approval_queue (
+  id text primary key,
+  user_key text default 'anonymous_preview',
+  action_type text,
+  label text,
+  status text,
+  action_data jsonb default '{}'::jsonb,
+  reason text,
+  created_at timestamptz default now(),
+  approved_at timestamptz
+);
+
+create table if not exists public.gg_observability_events (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  event_type text,
+  message text,
+  event_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_approval_queue_user_status on public.gg_approval_queue(user_key,status);
+create index if not exists idx_gg_observability_user_created on public.gg_observability_events(user_key,created_at);
+
+grant select, insert, update, delete on public.gg_user_profiles to authenticated, service_role;
+grant select, insert, update, delete on public.gg_persistent_memory to authenticated, service_role;
+grant select, insert, update, delete on public.gg_approval_queue to authenticated, service_role;
+grant select, insert, update, delete on public.gg_observability_events to authenticated, service_role;
+
+alter table public.gg_user_profiles enable row level security;
+alter table public.gg_persistent_memory enable row level security;
+alter table public.gg_approval_queue enable row level security;
+alter table public.gg_observability_events enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_user_profiles' and policyname='service role full access gg_user_profiles') then
+    create policy "service role full access gg_user_profiles" on public.gg_user_profiles for all to service_role using (true) with check (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_persistent_memory' and policyname='service role full access gg_persistent_memory') then
+    create policy "service role full access gg_persistent_memory" on public.gg_persistent_memory for all to service_role using (true) with check (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_approval_queue' and policyname='service role full access gg_approval_queue') then
+    create policy "service role full access gg_approval_queue" on public.gg_approval_queue for all to service_role using (true) with check (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_observability_events' and policyname='service role full access gg_observability_events') then
+    create policy "service role full access gg_observability_events" on public.gg_observability_events for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 7 Trust & Production Control Core
+create table if not exists public.gg_audit_trail (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  actor_role text,
+  action text,
+  resource text,
+  status text,
+  reason text,
+  metadata jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_audit_trail_user_created on public.gg_audit_trail(user_key, created_at);
+create index if not exists idx_gg_audit_trail_status on public.gg_audit_trail(status);
+
+grant select, insert, update, delete on public.gg_audit_trail to authenticated, service_role;
+
+alter table public.gg_audit_trail enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_audit_trail' and policyname='service role full access gg_audit_trail') then
+    create policy "service role full access gg_audit_trail"
+    on public.gg_audit_trail for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 8 Autonomous Reality Network
+create table if not exists public.gg_autonomous_reality_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  voice jsonb default '{}'::jsonb,
+  swarm jsonb default '[]'::jsonb,
+  world jsonb default '{}'::jsonb,
+  execution_graph jsonb default '{}'::jsonb,
+  relationship_graph jsonb default '{}'::jsonb,
+  predictions jsonb default '{}'::jsonb,
+  ambient jsonb default '{}'::jsonb,
+  investor jsonb default '{}'::jsonb,
+  devices jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_autonomous_reality_runs_user_created
+on public.gg_autonomous_reality_runs(user_key, created_at);
+
+grant select, insert, update, delete on public.gg_autonomous_reality_runs to authenticated, service_role;
+
+alter table public.gg_autonomous_reality_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_autonomous_reality_runs' and policyname='service role full access gg_autonomous_reality_runs') then
+    create policy "service role full access gg_autonomous_reality_runs"
+    on public.gg_autonomous_reality_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 10 Distributed Ambient Intelligence Fabric
+create table if not exists public.gg_distributed_ambient_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  runtime jsonb default '{}'::jsonb,
+  memory_fabric jsonb default '{}'::jsonb,
+  mesh jsonb default '{}'::jsonb,
+  device_sync jsonb default '{}'::jsonb,
+  optimization jsonb default '{}'::jsonb,
+  execution jsonb default '{}'::jsonb,
+  trust jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_distributed_ambient_runs_user_created
+on public.gg_distributed_ambient_runs(user_key, created_at);
+
+grant select, insert, update, delete on public.gg_distributed_ambient_runs to authenticated, service_role;
+
+alter table public.gg_distributed_ambient_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_distributed_ambient_runs' and policyname='service role full access gg_distributed_ambient_runs') then
+    create policy "service role full access gg_distributed_ambient_runs"
+    on public.gg_distributed_ambient_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 11 Self-Improving Orchestration Core
+create table if not exists public.gg_self_improving_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  fabric jsonb default '{}'::jsonb,
+  outcome jsonb default '{}'::jsonb,
+  learning jsonb default '{}'::jsonb,
+  tuning jsonb default '{}'::jsonb,
+  optimization_memory jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_self_improving_runs_user_created
+on public.gg_self_improving_runs(user_key, created_at);
+
+grant select, insert, update, delete on public.gg_self_improving_runs to authenticated, service_role;
+
+alter table public.gg_self_improving_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_self_improving_runs' and policyname='service role full access gg_self_improving_runs') then
+    create policy "service role full access gg_self_improving_runs"
+    on public.gg_self_improving_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 12 Ecosystem Intelligence Core
+create table if not exists public.gg_ecosystem_intelligence_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  orchestration jsonb default '{}'::jsonb,
+  market jsonb default '{}'::jsonb,
+  routing jsonb default '{}'::jsonb,
+  opportunity jsonb default '{}'::jsonb,
+  revenue jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_ecosystem_intelligence_runs_user_created
+on public.gg_ecosystem_intelligence_runs(user_key, created_at);
+
+grant select, insert, update, delete on public.gg_ecosystem_intelligence_runs to authenticated, service_role;
+
+alter table public.gg_ecosystem_intelligence_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_ecosystem_intelligence_runs' and policyname='service role full access gg_ecosystem_intelligence_runs') then
+    create policy "service role full access gg_ecosystem_intelligence_runs"
+    on public.gg_ecosystem_intelligence_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 13 Marketplace & Monetization Core
+create table if not exists public.gg_marketplace_monetization_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  ecosystem jsonb default '{}'::jsonb,
+  marketplace jsonb default '{}'::jsonb,
+  subscription jsonb default '{}'::jsonb,
+  forecast jsonb default '{}'::jsonb,
+  trust jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_marketplace_monetization_runs_user_created
+on public.gg_marketplace_monetization_runs(user_key, created_at);
+
+grant select, insert, update, delete on public.gg_marketplace_monetization_runs to authenticated, service_role;
+
+alter table public.gg_marketplace_monetization_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_marketplace_monetization_runs' and policyname='service role full access gg_marketplace_monetization_runs') then
+    create policy "service role full access gg_marketplace_monetization_runs"
+    on public.gg_marketplace_monetization_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 14 Autonomous Growth & Scale Intelligence Core
+create table if not exists public.gg_growth_scale_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  marketplace jsonb default '{}'::jsonb,
+  growth jsonb default '{}'::jsonb,
+  acquisition jsonb default '{}'::jsonb,
+  retention jsonb default '{}'::jsonb,
+  scale jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_growth_scale_runs_user_created
+on public.gg_growth_scale_runs(user_key, created_at);
+
+grant select, insert, update, delete on public.gg_growth_scale_runs to authenticated, service_role;
+
+alter table public.gg_growth_scale_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_growth_scale_runs' and policyname='service role full access gg_growth_scale_runs') then
+    create policy "service role full access gg_growth_scale_runs"
+    on public.gg_growth_scale_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 15 Enterprise Multi-Tenant Core
+create table if not exists public.gg_enterprise_multitenant_runs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text default 'default',
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  tenant jsonb default '{}'::jsonb,
+  organization jsonb default '{}'::jsonb,
+  policy jsonb default '{}'::jsonb,
+  metrics jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_enterprise_multitenant_runs_tenant_created
+on public.gg_enterprise_multitenant_runs(tenant_id, created_at);
+
+grant select, insert, update, delete on public.gg_enterprise_multitenant_runs to authenticated, service_role;
+
+alter table public.gg_enterprise_multitenant_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_enterprise_multitenant_runs' and policyname='service role full access gg_enterprise_multitenant_runs') then
+    create policy "service role full access gg_enterprise_multitenant_runs"
+    on public.gg_enterprise_multitenant_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 16 Production Launch & Reliability Core
+create table if not exists public.gg_production_reliability_runs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text default 'default',
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  enterprise jsonb default '{}'::jsonb,
+  readiness jsonb default '{}'::jsonb,
+  reliability jsonb default '{}'::jsonb,
+  rollback jsonb default '{}'::jsonb,
+  rollout jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_production_reliability_runs_tenant_created
+on public.gg_production_reliability_runs(tenant_id, created_at);
+
+grant select, insert, update, delete on public.gg_production_reliability_runs to authenticated, service_role;
+
+alter table public.gg_production_reliability_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_production_reliability_runs' and policyname='service role full access gg_production_reliability_runs') then
+    create policy "service role full access gg_production_reliability_runs"
+    on public.gg_production_reliability_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 17 Autonomous Operations Command Core
+create table if not exists public.gg_operations_command_runs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text default 'default',
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  reliability_core jsonb default '{}'::jsonb,
+  command jsonb default '{}'::jsonb,
+  incident jsonb default '{}'::jsonb,
+  escalation jsonb default '{}'::jsonb,
+  ledger jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_operations_command_runs_tenant_created
+on public.gg_operations_command_runs(tenant_id, created_at);
+
+grant select, insert, update, delete on public.gg_operations_command_runs to authenticated, service_role;
+
+alter table public.gg_operations_command_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_operations_command_runs' and policyname='service role full access gg_operations_command_runs') then
+    create policy "service role full access gg_operations_command_runs"
+    on public.gg_operations_command_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 18 Governance & Compliance Core
+create table if not exists public.gg_governance_compliance_runs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text default 'default',
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  operations jsonb default '{}'::jsonb,
+  governance jsonb default '{}'::jsonb,
+  privacy jsonb default '{}'::jsonb,
+  audit jsonb default '{}'::jsonb,
+  boundary jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+create index if not exists idx_gg_governance_compliance_runs_tenant_created on public.gg_governance_compliance_runs(tenant_id, created_at);
+grant select, insert, update, delete on public.gg_governance_compliance_runs to authenticated, service_role;
+alter table public.gg_governance_compliance_runs enable row level security;
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_governance_compliance_runs' and policyname='service role full access gg_governance_compliance_runs') then
+    create policy "service role full access gg_governance_compliance_runs" on public.gg_governance_compliance_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 19 Adaptive Memory & Security Core
+create table if not exists public.gg_adaptive_memory_security_runs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text default 'default',
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  operations jsonb default '{}'::jsonb,
+  memory_review jsonb default '{}'::jsonb,
+  privacy jsonb default '{}'::jsonb,
+  security jsonb default '{}'::jsonb,
+  governance jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_adaptive_memory_security_runs_tenant_created
+on public.gg_adaptive_memory_security_runs(tenant_id, created_at);
+
+grant select, insert, update, delete on public.gg_adaptive_memory_security_runs to authenticated, service_role;
+
+alter table public.gg_adaptive_memory_security_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_adaptive_memory_security_runs' and policyname='service role full access gg_adaptive_memory_security_runs') then
+    create policy "service role full access gg_adaptive_memory_security_runs"
+    on public.gg_adaptive_memory_security_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- Phase 20 Real Integrations & Deployment Wiring
+create table if not exists public.gg_real_integration_deployment_runs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text default 'default',
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  security jsonb default '{}'::jsonb,
+  integrations jsonb default '{}'::jsonb,
+  deployment jsonb default '{}'::jsonb,
+  connectors jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+-- Phase 21 Final Production Release
+create table if not exists public.gg_final_production_release_runs (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text default 'default',
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  integration jsonb default '{}'::jsonb,
+  investor jsonb default '{}'::jsonb,
+  release jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_real_integration_deployment_runs_tenant_created
+on public.gg_real_integration_deployment_runs(tenant_id, created_at);
+
+create index if not exists idx_gg_final_production_release_runs_tenant_created
+on public.gg_final_production_release_runs(tenant_id, created_at);
+
+grant select, insert, update, delete on public.gg_real_integration_deployment_runs to authenticated, service_role;
+grant select, insert, update, delete on public.gg_final_production_release_runs to authenticated, service_role;
+
+alter table public.gg_real_integration_deployment_runs enable row level security;
+alter table public.gg_final_production_release_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_real_integration_deployment_runs' and policyname='service role full access gg_real_integration_deployment_runs') then
+    create policy "service role full access gg_real_integration_deployment_runs"
+    on public.gg_real_integration_deployment_runs for all to service_role using (true) with check (true);
+  end if;
+
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_final_production_release_runs' and policyname='service role full access gg_final_production_release_runs') then
+    create policy "service role full access gg_final_production_release_runs"
+    on public.gg_final_production_release_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
+
+
+
+-- AI Event Operating System V1
+create table if not exists public.gg_event_os_runs (
+  id uuid primary key default gen_random_uuid(),
+  user_key text default 'anonymous_preview',
+  request text,
+  response_text text,
+  intent jsonb default '{}'::jsonb,
+  blueprint jsonb default '{}'::jsonb,
+  vendors jsonb default '{}'::jsonb,
+  pricing jsonb default '{}'::jsonb,
+  calendar jsonb default '{}'::jsonb,
+  approvals jsonb default '{}'::jsonb,
+  event_memory jsonb default '{}'::jsonb,
+  result_data jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_gg_event_os_runs_user_created
+on public.gg_event_os_runs(user_key, created_at);
+
+grant select, insert, update, delete on public.gg_event_os_runs to authenticated, service_role;
+
+alter table public.gg_event_os_runs enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='gg_event_os_runs' and policyname='service role full access gg_event_os_runs') then
+    create policy "service role full access gg_event_os_runs"
+    on public.gg_event_os_runs for all to service_role using (true) with check (true);
+  end if;
+end $$;
